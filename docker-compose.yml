@@ -1,51 +1,7 @@
 ---
-version: '3'
+version: '2'
 
 services:
-
-  traefik:
-    image: traefik:v1.7
-    command: --web --docker --docker.watch --docker.domain=${DOMAIN} \
-             --docker.exposedbydefault=false --acme.domains=${DOMAIN}
-    container_name: traefik
-    hostname: traefik
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${CONFIG}/traefik/acme.json:/acme.json
-      - ${CONFIG}/traefik/traefik.toml:/etc/traefik/traefik.toml
-      - ${CONFIG}/traefik/.htpasswd:/etc/traefik/.htpasswd:ro
-    labels:
-      traefik.enable: "true"
-      traefik.frontend.rule: "Host:monitor.${DOMAIN}"
-      traefik.port: "8080"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
-    restart: unless-stopped
-
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - PGID
-      - PUID
-      - TZ
-    command: --schedule "0 0 6 * * *" --label-enable --cleanup
-    restart: unless-stopped
-
-  ddclient:
-    image: linuxserver/ddclient
-    container_name: ddclient
-    volumes:
-      - ${CONFIG}/ddclient:/config
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
-    restart: unless-stopped
-
   sabnzbd:
     image: linuxserver/sabnzbd:latest
     container_name: sabnzbd
@@ -54,19 +10,13 @@ services:
       - "8080:8080"
     volumes:
       - ${CONFIG}/sabnzbd:/config
-      - ${DOWNLOAD}/complete:/downloads
-      - ${DOWNLOAD}/incomplete:/incomplete-downloads
+      - ${DOWNLOAD}/complete:/config/Downloads/complete 
+      - ${DOWNLOAD}/incomplete:/config/Downloads/incomplete
       - ${DOWNLOAD}/watch:/watch
     environment:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "8080"
-      traefik.frontend.rule: "Host:sabnzbd.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   sonarr:
@@ -84,12 +34,6 @@ services:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "8989"
-      traefik.frontend.rule: "Host:sonarr.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   radarr:
@@ -106,12 +50,6 @@ services:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "7878"
-      traefik.frontend.rule: "Host:radarr.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   lidarr:
@@ -128,12 +66,6 @@ services:
     environment:
       - PGID
       - PUID
-    labels:
-      traefik.enable: "true"
-      traefik.port: "8686"
-      traefik.frontend.rule: "Host:lidarr.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   lazylibrarian:
@@ -150,12 +82,6 @@ services:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "5299"
-      traefik.frontend.rule: "Host:lazylibrarian.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   mylar:
@@ -172,12 +98,6 @@ services:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "8090"
-      traefik.frontend.rule: "Host:mylar.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   nzbhydra:
@@ -193,12 +113,6 @@ services:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "5076"
-      traefik.frontend.rule: "Host:nzbhydra.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   plex:
@@ -222,11 +136,6 @@ services:
       - PUID
       - TZ
       - VERSION=latest
-    labels:
-      traefik.enable: "true"
-      traefik.port: "32400"
-      traefik.frontend.rule: "Host:plex.${DOMAIN}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
 
   plexpy:
@@ -242,68 +151,4 @@ services:
       - PGID
       - PUID
       - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "8181"
-      traefik.frontend.rule: "Host:tautulli.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
-    restart: unless-stopped
-
-  heimdall:
-    image: linuxserver/heimdall:latest
-    container_name: heimdall
-    hostname: heimdall
-    volumes:
-      - ${CONFIG}/heimdall:/config
-    environment:
-      - PGID
-      - PUID
-      - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "80"
-      traefik.frontend.rule: "Host:${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
-    restart: unless-stopped
-
-  ombi:
-    image: linuxserver/ombi
-    container_name: ombi
-    hostname: ombi
-    ports:
-      - "3579:3579"
-    volumes:
-      - ${CONFIG}/ombi:/config
-    environment:
-      - PGID
-      - PUID
-      - TZ
-    labels:
-      traefik.enable: "true"
-      traefik.port: "3579"
-      traefik.frontend.rule: "Host:ombi.${DOMAIN}"
-      com.centurylinklabs.watchtower.enable: "true"
-    restart: unless-stopped
-
-  flexget:
-    image: cpoppema/docker-flexget
-    container_name: flexget
-    hostname: flexget
-    ports:
-      - "5050:5050"
-    volumes:
-      - ${CONFIG}/flexget:/config
-      - ${DOWNLOAD}/watch:/watch
-    environment:
-      - PGID
-      - PUID
-      - WEB_PASSWD=pNTgQj4hfJPPiGVFt9re
-    labels:
-      traefik.enable: "true"
-      traefik.port: "5050"
-      traefik.frontend.rule: "Host:flexget.${DOMAIN}"
-      traefik.frontend.auth.basic: "${HTPASSWD}"
-      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped

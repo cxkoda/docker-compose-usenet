@@ -152,3 +152,15 @@ services:
       - PUID
       - TZ
     restart: unless-stopped
+
+  usenet-agent:
+    image: cxkoda/usenet-agent:latest
+    container_name: usenet-agent
+    hostname: usenet-agent
+    volumes:
+      - ${CONFIG}/usenet-agent:/config
+    environment:
+      - PGID
+      - PUID
+      - TZ
+    restart: unless-stopped

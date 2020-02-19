@@ -164,3 +164,19 @@ services:
       - PUID
       - TZ
     restart: unless-stopped
+
+  jellyfin:
+    image: linuxserver/jellyfin
+    container_name: jellyfin
+    volumes:
+      - ${CONFIG}/jellyfin:/config
+      - ${DATA}/tv:/data/tvshows
+      - ${DATA}/movies:/data/movies
+    ports:
+      - 8096:8096
+      - 8920:8920
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    restart: unless-stopped

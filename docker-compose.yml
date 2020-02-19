@@ -28,6 +28,7 @@ services:
     volumes:
       - ${CONFIG}/sonarr:/config
       - ${DOWNLOAD}/complete:/downloads
+      - ${DOWNLOAD}/incomplete:/incomplete-downloads
       - ${DATA}/tv:/tv
       - ${DATA}/anime:/anime
     environment:
